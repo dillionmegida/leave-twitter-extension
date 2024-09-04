@@ -71,70 +71,82 @@ function replacePageContent() {
 }
 
 const STORAGE_KEY_TIME_SPENT = "time_spent_on_twitter"
+const STORAGE_KEY_LIMIT = "time_limit_for_twitter"
 const STORAGE_KEY_DATE = "todays_date"
-const TIME_LIMIT = 2 * 60 * 60; // 2hrs
 
-let timeSpent = 0 // in secs
-let intervalId;
-
-function init() {
-  const savedTodaysDate = localStorage.getItem(STORAGE_KEY_DATE)
-  const actualTodaysDate = new Date()
-
-  const sameDay = isItSameDay(savedTodaysDate, actualTodaysDate)
-
-  if (sameDay) {
-    const savedTimeSpent = localStorage.getItem(STORAGE_KEY_TIME_SPENT)
-    const savedTimeSpentInNum = parseInt(savedTimeSpent)
-
-    if (isItTimeUp(savedTimeSpentInNum)) return replacePageContent()
-
-    intervalId = setTimer(savedTimeSpentInNum)
-  } else {
-    localStorage.setItem(STORAGE_KEY_DATE, actualTodaysDate)
-    intervalId = setTimer(0)
-  }
-}
-
-function setTimer(from = 0) {
-  timeSpent = from
-
-  const intervalId = setInterval(() => {
-    timeSpent++
-
-    if (isItTimeUp(timeSpent)) {
-      replacePageContent()
-      clearInterval(intervalId)
-      return
-    }
-
-    localStorage.setItem(STORAGE_KEY_TIME_SPENT, timeSpent)
-  }, 1000)
-
-  return intervalId
-}
-
-init()
-
-function isItSameDay(date1, date2) {
-  const dateObject1 = new Date(date1)
-  const dateObject2 = new Date(date2)
-
-  return (
-    dateObject1.getDate() === dateObject2.getDate() &&
-    dateObject1.getMonth() === dateObject2.getMonth() &&
-    dateObject1.getFullYear() === dateObject2.getFullYear()
+async function main() {
+  let storageResult = await chrome.storage.local.get([STORAGE_KEY_LIMIT])
+  console.log(
+    "Duration retrieved from storage:",
+    storageResult[STORAGE_KEY_LIMIT] + "mins"
   )
-}
 
-function isItTimeUp(timeSpent) {
-  return timeSpent >= TIME_LIMIT
-}
+  const TIME_LIMIT = storageResult[STORAGE_KEY_LIMIT] * 60 // from mins to secs
 
-// only calculate time spent if tab is visible
-document.addEventListener('visibilitychange', () => {
-  if(document.hidden)
-    return clearInterval(intervalId)
+  let timeSpent = 0 // in secs
+  let intervalId
+
+  function init() {
+    const savedTodaysDate = localStorage.getItem(STORAGE_KEY_DATE)
+    const actualTodaysDate = new Date()
+
+    const sameDay = isItSameDay(savedTodaysDate, actualTodaysDate)
+
+    if (sameDay) {
+      const savedTimeSpent = localStorage.getItem(STORAGE_KEY_TIME_SPENT)
+      const savedTimeSpentInNum = parseInt(savedTimeSpent)
+
+      if (isItTimeUp(savedTimeSpentInNum)) return replacePageContent()
+
+      intervalId = setTimer(savedTimeSpentInNum)
+    } else {
+      localStorage.setItem(STORAGE_KEY_DATE, actualTodaysDate)
+      intervalId = setTimer(0)
+    }
+  }
+
+  function setTimer(from = 0) {
+    timeSpent = from
+
+    const intervalId = setInterval(() => {
+      timeSpent++
+
+      if (isItTimeUp(timeSpent)) {
+        replacePageContent()
+        clearInterval(intervalId)
+        return
+      }
+
+      localStorage.setItem(STORAGE_KEY_TIME_SPENT, timeSpent)
+    }, 1000)
+
+    return intervalId
+  }
 
   init()
-})
+
+  function isItSameDay(date1, date2) {
+    const dateObject1 = new Date(date1)
+    const dateObject2 = new Date(date2)
+
+    return (
+      dateObject1.getDate() === dateObject2.getDate() &&
+      dateObject1.getMonth() === dateObject2.getMonth() &&
+      dateObject1.getFullYear() === dateObject2.getFullYear()
+    )
+  }
+
+  function isItTimeUp(timeSpent) {
+    console.log(timeSpent, TIME_LIMIT)
+    return timeSpent >= TIME_LIMIT
+  }
+
+  // only calculate time spent if tab is visible
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) return clearInterval(intervalId)
+
+    init()
+  })
+}
+
+main()

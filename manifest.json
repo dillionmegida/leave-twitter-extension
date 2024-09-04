@@ -3,6 +3,7 @@
   "name": "Leave Twitter Alone",
   "description": "An extension that makes x.com blank after a specific time",
   "version": "1.0",
+  "permissions": ["storage"],
   "action": {
     "default_popup": "twitter.html",
     "default_icon": "assets/logo.png"
@@ -10,9 +11,7 @@
   "content_scripts": [
     {
       "js": ["scripts/replace-page.js"],
-      "matches": [
-        "https://x.com/*"
-      ]
+      "matches": ["https://x.com/*"]
     }
   ]
 }
