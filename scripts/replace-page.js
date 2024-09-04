@@ -75,13 +75,13 @@ const STORAGE_KEY_DATE = "todays_date"
 const TIME_LIMIT = 2 * 60 * 60; // 2hrs
 
 let timeSpent = 0 // in secs
+let intervalId;
 
 function init() {
   const savedTodaysDate = localStorage.getItem(STORAGE_KEY_DATE)
   const actualTodaysDate = new Date()
 
   const sameDay = isItSameDay(savedTodaysDate, actualTodaysDate)
-  console.log({ savedTodaysDate, actualTodaysDate, sameDay })
 
   if (sameDay) {
     const savedTimeSpent = localStorage.getItem(STORAGE_KEY_TIME_SPENT)
@@ -89,17 +89,17 @@ function init() {
 
     if (isItTimeUp(savedTimeSpentInNum)) return replacePageContent()
 
-    setTimer(savedTimeSpent)
+    intervalId = setTimer(savedTimeSpentInNum)
   } else {
     localStorage.setItem(STORAGE_KEY_DATE, actualTodaysDate)
-    setTimer(0)
+    intervalId = setTimer(0)
   }
 }
 
 function setTimer(from = 0) {
-  timeSpent += from
+  timeSpent = from
 
-  intervalId = setInterval(() => {
+  const intervalId = setInterval(() => {
     timeSpent++
 
     if (isItTimeUp(timeSpent)) {
@@ -110,6 +110,8 @@ function setTimer(from = 0) {
 
     localStorage.setItem(STORAGE_KEY_TIME_SPENT, timeSpent)
   }, 1000)
+
+  return intervalId
 }
 
 init()
@@ -128,3 +130,11 @@ function isItSameDay(date1, date2) {
 function isItTimeUp(timeSpent) {
   return timeSpent >= TIME_LIMIT
 }
+
+// only calculate time spent if tab is visible
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden)
+    return clearInterval(intervalId)
+
+  init()
+})
