@@ -6,5 +6,13 @@
   "action": {
     "default_popup": "twitter.html",
     "default_icon": "assets/logo.png"
-  }
+  },
+  "content_scripts": [
+    {
+      "js": ["scripts/replace-page.js"],
+      "matches": [
+        "https://x.com/*"
+      ]
+    }
+  ]
 }
