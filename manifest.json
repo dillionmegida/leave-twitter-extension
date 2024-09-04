@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Leave Twitter Alone",
+  "description": "An extension that makes x.com blank after a specific time",
+  "version": "1.0",
+  "action": {
+    "default_popup": "twitter.html",
+    "default_icon": "assets/logo.png"
+  }
+}
